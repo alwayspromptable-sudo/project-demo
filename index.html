@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>You Are There: Philadelphia, 1787</title>
+<style>
+  :root{
+    --ink: #1c2541;
+    --ink-soft: #3d4a6b;
+    --parchment: #ece1c4;
+    --parchment-deep: #ddcda0;
+    --wax: #9c2b1f;
+    --wax-deep: #7a2118;
+    --brass: #8a6a2f;
+    --line: #c9b98a;
+    --paper-shadow: rgba(28,37,65,0.18);
+  }
+ 
+  *{ box-sizing: border-box; }
+ 
+  html,body{
+    margin:0;
+    padding:0;
+    background: var(--parchment);
+    color: var(--ink);
+    font-family: 'Iowan Old Style','Palatino Linotype','Book Antiqua',Georgia,serif;
+  }
+ 
+  body{
+    background-image:
+      radial-gradient(ellipse at top left, rgba(255,255,255,0.25), transparent 55%),
+      radial-gradient(ellipse at bottom right, rgba(0,0,0,0.05), transparent 55%);
+    min-height: 100vh;
+  }
+ 
+  .wrap{
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 28px 20px 80px;
+  }
+ 
+  /* Progress bar */
+  .progress-shell{
+    display:flex;
+    gap:4px;
+    margin-bottom: 22px;
+  }
+  .progress-seg{
+    flex:1;
+    height:6px;
+    background: var(--parchment-deep);
+    border-radius: 1px;
+    overflow:hidden;
+    position:relative;
+  }
+  .progress-seg.filled::after{
+    content:'';
+    position:absolute; inset:0;
+    background: var(--wax);
+  }
+  .progress-label{
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 12.5px;
+    letter-spacing: 0.02em;
+    color: var(--ink-soft);
+    margin-bottom: 22px;
+    text-align:center;
+  }
+ 
+  /* Header / hero */
+  .hero{
+    text-align:center;
+    margin-bottom: 30px;
+  }
+  .seal{
+    width: 64px; height: 64px;
+    margin: 0 auto 14px;
+    display:block;
+  }
+  h1.title{
+    font-size: clamp(28px, 6vw, 40px);
+    line-height: 1.15;
+    margin: 0 0 10px;
+    font-weight: 700;
+  }
+  .subtitle{
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    color: var(--ink-soft);
+    font-size: 15px;
+    line-height: 1.6;
+    max-width: 460px;
+    margin: 0 auto;
+  }
+  .meta-note{
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 13px;
+    color: var(--brass);
+    margin-top: 14px;
+  }
+ 
+  /* Story card */
+  .card{
+    background: #fbf6e8;
+    border: 1px solid var(--line);
+    box-shadow: 0 1px 0 var(--line), 0 12px 28px var(--paper-shadow);
+    padding: 30px 28px;
+    position: relative;
+  }
+  .card::before{
+    content:'';
+    position:absolute;
+    top:6px; left:6px; right:-6px; bottom:-6px;
+    border: 1px solid var(--line);
+    z-index:-1;
+    opacity: 0.6;
+  }
+ 
+  .act-tag{
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 12.5px;
+    color: var(--wax);
+    margin-bottom: 12px;
+    font-weight: 600;
+  }
+ 
+  .story-text{
+    font-size: 19px;
+    line-height: 1.65;
+    margin: 0 0 26px;
+  }
+  .story-text p{ margin: 0 0 14px; }
+  .story-text p:last-child{ margin-bottom:0; }
+ 
+  /* Glossary terms */
+  .term{
+    border-bottom: 1.5px dotted var(--brass);
+    cursor: pointer;
+    color: var(--ink);
+    position: relative;
+    font-style: normal;
+  }
+  .term:hover, .term.active{ color: var(--wax-deep); }
+ 
+  .term-popup{
+    display:none;
+    position:absolute;
+    left:0; top: 100%;
+    margin-top: 8px;
+    width: 240px;
+    max-width: 70vw;
+    background: var(--ink);
+    color: var(--parchment);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 13.5px;
+    line-height: 1.5;
+    padding: 12px 14px;
+    z-index: 20;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+  }
+  .term-popup.open{ display:block; }
+  .term-popup .glabel{
+    display:block;
+    font-weight: 700;
+    color: #e9c98a;
+    margin-bottom: 4px;
+    font-size: 12px;
+    text-transform: lowercase;
+  }
+ 
+  /* Choices */
+  .choices{
+    display:flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  button.choice{
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    text-align:left;
+    background: var(--parchment);
+    border: 1.5px solid var(--ink);
+    color: var(--ink);
+    padding: 13px 16px;
+    font-size: 15px;
+    line-height: 1.4;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease, transform 0.1s ease;
+  }
+  button.choice:hover{
+    background: var(--ink);
+    color: var(--parchment);
+  }
+  button.choice:active{ transform: translateY(1px); }
+ 
+  button.primary{
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--wax);
+    color: #fbf6e8;
+    border: none;
+    padding: 14px 28px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    display:block;
+    margin: 26px auto 0;
+    transition: background 0.15s ease;
+  }
+  button.primary:hover{ background: var(--wax-deep); }
+ 
+  /* Intro screen extra */
+  .intro-card{ text-align:center; }
+  .intro-card .story-text{ text-align:left; }
+ 
+  /* Journal / ending */
+  .journal{
+    margin-top: 28px;
+  }
+  .journal h3{
+    font-size: 15px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    letter-spacing: 0.01em;
+    color: var(--brass);
+    margin: 0 0 10px;
+    border-top: 1px solid var(--line);
+    padding-top: 18px;
+  }
+  .journal ul{
+    margin:0; padding: 0 0 0 18px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 13.5px;
+    line-height: 1.55;
+    color: var(--ink-soft);
+  }
+  .journal li{ margin-bottom: 8px; }
+ 
+  .ending-title{
+    font-size: 26px;
+    margin: 0 0 14px;
+  }
+ 
+  footer.hint{
+    text-align:center;
+    margin-top: 18px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    opacity: 0.75;
+  }
+ 
+  @media (prefers-reduced-motion: reduce){
+    *{ transition: none !important; }
+  }
+</style>
+</head>
+<body>
+ 
+<div class="wrap">
+ 
+  <div class="progress-shell" id="progressShell" style="display:none;"></div>
+  <div class="progress-label" id="progressLabel" style="display:none;"></div>
+ 
+  <div id="app"></div>
+ 
+  <footer class="hint" id="hintText"></footer>
+</div>
+ 
+<script>
+/* ============================================================
+   GLOSSARY
+   ============================================================ */
+const GLOSSARY = {
+  "delegate": "A person chosen to represent and speak for a group at a meeting.",
+  "convention": "A formal meeting where delegates gather to make decisions — here, the 1787 meeting in Philadelphia that wrote the Constitution.",
+  "articles of confederation": "America's first plan of government, used from 1781–1789. It gave states almost all the power and left the national government very weak.",
+  "shays' rebellion": "An armed uprising (1786–87) by Massachusetts farmers who were losing their land to debt collectors. It scared many leaders into thinking the country needed a stronger government.",
+  "representation": "Having someone speak and vote for your interests in government.",
+  "bicameral": "Having two chambers, or parts. Congress is bicameral: the House of Representatives and the Senate.",
+  "compromise": "An agreement where each side gives up part of what it wants so everyone can move forward.",
+  "enslaved": "Held in slavery, without freedom or rights over one's own life or labor.",
+  "checks and balances": "A system where each branch of government can limit the power of the other branches.",
+  "legislative": "The branch of government that makes the laws (Congress).",
+  "executive": "The branch of government that carries out and enforces the laws (led by the President).",
+  "judicial": "The branch of government that interprets the laws (the courts).",
+  "veto": "The power to reject a law before it takes effect.",
+  "override": "When Congress outvotes a presidential veto — with a two-thirds majority — so the law passes anyway.",
+  "federalism": "Splitting power between a national government and state governments.",
+  "ratify": "To officially approve something and make it final — here, approving the Constitution.",
+  "federalist": "Someone who supported ratifying the Constitution and a stronger national government.",
+  "anti-federalist": "Someone who worried the Constitution gave the national government too much power, and wanted a bill of rights added.",
+  "tyranny": "Government that uses power unfairly and cruelly, without real limits.",
+  "amendment": "A change or addition made to a document, like the Constitution.",
+  "bill of rights": "The first ten amendments to the Constitution, guaranteeing individual freedoms like speech, religion, and a fair trial."
+};
+ 
+function withTerms(html){
+  // wraps known glossary terms found in the text with clickable spans (case-insensitive, first match only per term per string)
+  let out = html;
+  Object.keys(GLOSSARY).forEach(term => {
+    const re = new RegExp('\\b(' + term.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + ')\\b','i');
+    if(re.test(out)){
+      out = out.replace(re, function(m){
+        return `<span class="term" data-term="${term}">${m}<span class="term-popup"><span class="glabel">${term}</span>${GLOSSARY[term]}</span></span>`;
+      });
+    }
+  });
+  return out;
+}
+ 
+/* ============================================================
+   STORY GRAPH
+   ============================================================ */
+const NODES = {
+ 
+  n1: { act:1, text:`<p>The library door creaks shut behind you — and the hallway on the other side smells like woodsmoke and horses instead of floor wax. A man in a long wool coat grabs your sleeve.</p>
+        <p>"There you are! Mr. Randolph needs these notes carried to the market square. Quickly now, ${'delegate'} — er, delegate's aide!"</p>
+        <p>You don't correct him.</p>`,
+    choices:[
+      {label:"Follow him into the square, notebook in hand", next:"n2", journal:"You arrived in Philadelphia in the summer of 1787 — right in the middle of a secret meeting that would change American government forever."},
+      {label:"Try to slip away and find the door home first", next:"n2", journal:"Curious despite yourself, you followed the crowd toward Philadelphia's market square in the summer of 1787."}
+    ]
+  },
+ 
+  n2: { act:1, text:`<p>The market is loud. A farmer is shouting at a merchant, waving a fistful of paper money that the merchant refuses to take. "It's worthless outside my own state!" the farmer says. "How am I supposed to pay my debts?"</p>
+        <p>Under the current government — the ${'articles of confederation'} — Congress has no power to tax anyone directly. It can only ask states for money, and states often say no. Every state prints its own currency, and trade between them is a mess.</p>`,
+    choices:[
+      {label:"Ask the farmer what's really wrong", next:"n3", journal:"Under the Articles of Confederation, the national government couldn't tax anyone directly — it had to beg states for money, and states often refused."},
+      {label:"Hurry past — you don't want to be late", next:"n3", journal:"The market felt tense: worthless paper money, angry farmers, and a national government too weak to fix any of it."}
+    ]
+  },
+ 
+  n3: { act:1, text:`<p>Mr. Randolph catches up, out of breath. "Soldiers who fought in the Revolution still haven't been paid," he mutters. "Last year in Massachusetts, a farmer named Daniel Shays led an armed uprising — ${"shays' rebellion"} — because people were losing their farms to debt collectors and no one in Congress could stop it. Congress doesn't even have its own army."</p>`,
+    choices:[
+      {label:"That's terrifying — no wonder people want a stronger government", next:"n4", journal:"Shays' Rebellion showed how little power the national government had — it couldn't even respond to an armed uprising."},
+      {label:"It's terrifying that a government might need an army against its own people", next:"n4", journal:"Shays' Rebellion raised a hard question: how much power should a government really have over its own people?"}
+    ]
+  },
+ 
+  n4: { act:1, text:`<p>Mr. Randolph stops outside a locked hall, guarded and shuttered against the summer heat. "They've decided," he says quietly. "We're not patching the Articles of Confederation anymore. We're throwing them out and starting from scratch." He presses paper and ink into your hands. "No one outside this room can know what's said until it's finished."</p>
+        <p>The door opens.</p>`,
+    choices:[
+      {label:"Step inside, notebook ready — this feels important", next:"n5", journal:"You entered the Constitutional Convention of 1787 — a closed-door meeting of delegates rewriting American government from the ground up."},
+      {label:"Step inside, unsure what 'starting over' really means", next:"n5", journal:"You entered the Constitutional Convention of 1787, where delegates had agreed to write an entirely new plan of government."}
+    ]
+  },
+ 
+  /* ---------------- ACT 2 : The Great Debate ---------------- */
+ 
+  n5: { act:2, text:`<p>Inside, the room is packed. A ${'delegate'} from Virginia is on his feet, sketching a plan: a new Congress where each state gets a number of seats based on its population. Bigger states, more votes. It's called the Virginia Plan, and the room is already arguing about it.</p>`,
+    choices:[
+      {label:"That seems fair — more people should mean more votes", next:"n6", journal:"The Virginia Plan proposed representation based on population — an idea the biggest states loved and the smallest states feared."},
+      {label:"That seems risky — won't big states just outvote everyone else?", next:"n6", journal:"Small-state delegates worried the Virginia Plan's population-based representation would let big states control everything."}
+    ]
+  },
+ 
+  n6: { act:2, text:`<p>A delegate from New Jersey stands to object. His counter-proposal — the New Jersey Plan — gives every state the same number of votes in Congress, no matter its size. Small states cheer. Big states groan.</p>`,
+    choices:[
+      {label:"Equal votes for every state seems fair too", next:"n7", journal:"The New Jersey Plan proposed equal representation for every state, regardless of population — a plan small states preferred."},
+      {label:"But wouldn't tiny Delaware get as much say as huge Virginia?", next:"n7", journal:"Big-state delegates objected that equal representation would give small states outsized power for their size."}
+    ]
+  },
+ 
+  n7: { act:2, text:`<p>The argument drags on for weeks until Connecticut proposes something in between: a ${'bicameral'} Congress — two chambers. One, the House of Representatives, based on population, like Virginia wanted. The other, the Senate, with equal votes per state, like New Jersey wanted. It's called the Great Compromise, and — barely — it passes.</p>`,
+    choices:[
+      {label:"A little of both — that's actually pretty clever", next:"n8", journal:"The Great (Connecticut) Compromise created a bicameral Congress: a House based on population and a Senate with equal votes per state."},
+      {label:"It's messy, but maybe that's what compromise looks like", next:"n8", journal:"The Great Compromise settled the representation fight by blending both plans into a two-chamber Congress."}
+    ]
+  },
+ 
+  n8: { act:2, text:`<p>A harder question is waiting. Southern states want ${'enslaved'} people counted toward their population — which would give them more seats in the new House — but refuse to give enslaved people any rights or a vote at all. Northern delegates object. After days of arguing, the room settles on the Three-Fifths ${'compromise'}: for population counts, each enslaved person will count as three-fifths of a person.</p>
+        <p>It ends the argument. It also treats human beings as a bargaining chip, and it asks the enslaved people themselves nothing at all.</p>`,
+    choices:[
+      {label:"This compromise is unjust, even if it 'solved' the disagreement", next:"n9", journal:"The Three-Fifths Compromise boosted Southern representation in Congress while denying enslaved people any rights — a decision historians recognize as a serious moral failure that the Constitution would not fully address for nearly 80 more years, until the 13th, 14th, and 15th Amendments."},
+      {label:"I understand why they compromised, but I still don't think it was fair", next:"n9", journal:"Even delegates who accepted the Three-Fifths Compromise as politically necessary recognized it did not solve the deeper injustice of slavery — a problem left for later generations to confront."}
+    ]
+  },
+ 
+  n9: { act:2, text:`<p>You set down your pen, hand aching. "That's the last of the big fights over representation," Mr. Randolph says. "Now we decide what this new government can actually do — and how to stop it from turning into exactly the kind of power everyone in this room is afraid of."</p>`,
+    choices:[
+      {label:"Good — I want to know how they'll keep it from getting out of control", next:"n10", journal:"Having settled representation, the Convention turned to limiting government power itself."},
+      {label:"I just hope they get the next part right", next:"n10", journal:"With representation settled, the delegates moved on to designing the structure of the government itself."}
+    ]
+  },
+ 
+  /* ---------------- ACT 3 : Building the Machine ---------------- */
+ 
+  n10: { act:3, text:`<p>An older delegate sketches three legs of a stool on scrap paper. "Three branches," he explains. "${'legislative'} makes the laws. ${'executive'} carries them out. ${'judicial'} interprets them when there's a dispute. Knock out one leg, the stool falls. That's on purpose."</p>`,
+    choices:[
+      {label:"Ask which branch is supposed to be the strongest", next:"n11", journal:"The government was split into three branches — legislative, executive, and judicial — designed so no single branch could dominate the others."},
+      {label:"Ask what stops one branch from just grabbing more power", next:"n11", journal:"Delegates built three separate branches specifically to prevent any one part of government from becoming too powerful."}
+    ]
+  },
+ 
+  n11: { act:3, text:`<p>"Nothing 'stops' it exactly," the delegate says, "but each branch can slow the others down. Say Congress passes a law the President hates — he can ${'veto'} it. But if enough of Congress still wants it, they can ${'override'} that veto and pass it anyway."</p>
+        <p>He hands you a mock scenario: Congress has just passed a law. The President has vetoed it.</p>`,
+    choices:[
+      {label:"Congress should try to override the veto", next:"n12", journal:"You saw checks and balances in action: a presidential veto, and Congress's power to override it with enough votes."},
+      {label:"The President's veto should stand — maybe the law needs work", next:"n12", journal:"You saw how a presidential veto can check Congress's lawmaking power — one branch limiting another."}
+    ]
+  },
+ 
+  n12: { act:3, text:`<p>Outside the hall, a delegate from a small state pulls you aside. "There's another balance nobody's talking about enough," she says. "${'federalism'} — splitting power between this new national government and the states themselves. National government handles the army, money, treaties with other countries. States handle schools, local roads, local law. It's a constant tug-of-war."</p>`,
+    choices:[
+      {label:"I like giving states a lot of the power", next:"n13", journal:"Federalism divides power between national and state governments — and delegates disagreed sharply about how much each should hold."},
+      {label:"I like giving the national government a lot of the power", next:"n13", journal:"Federalism divides power between national and state governments — a balance the Convention debated fiercely."}
+    ]
+  },
+ 
+  n13: { act:3, text:`<p>She gives you an example: should the national government be able to build and maintain roads that cross state lines, even if one of those states objects?</p>`,
+    choices:[
+      {label:"Yes — some things need one national plan", next:"n14", journal:"You leaned toward stronger national authority over matters that cross state lines."},
+      {label:"No — let each state decide what happens inside its own borders", next:"n14", journal:"You leaned toward protecting state authority over matters within their own borders."}
+    ]
+  },
+ 
+  n14: { act:3, text:`<p>The delegates argue for weeks more. Finally, in September, Mr. Randolph slides a finished document across the table. "The Constitution," he says. "Now the real fight begins — convincing thirteen states to say yes."</p>`,
+    choices:[
+      {label:"I want to help make the case for it", next:"n15", journal:"The Constitutional Convention finished its draft — now it had to be ratified by the states."},
+      {label:"I want to hear both sides before I decide", next:"n15", journal:"The finished Constitution now faced the hardest test: ratification by nine of the thirteen states."}
+    ]
+  },
+ 
+  /* ---------------- ACT 4 : The Big Argument ---------------- */
+ 
+  n15: { act:4, text:`<p>Word spreads fast. Some people can't wait to ${'ratify'} — approve — the new Constitution. Others are furious it doesn't even mention basic rights like freedom of speech or a fair trial. Which side do you find yourself agreeing with first?</p>`,
+    choices:[
+      {label:"The Federalists — we need a strong, united government", next:"n16", effect:{unity:2}, path:"federalist"},
+      {label:"The Anti-Federalists — I'm worried about too much power in one place", next:"n17", effect:{liberty:2}, path:"antifederalist"}
+    ]
+  },
+ 
+  n16: { act:4, text:`<p>You spend an evening reading essays signed "Publius" — really James Madison, Alexander Hamilton, and John Jay, writing to convince New Yorkers to ratify. Their argument: a weak government already failed once (remember the Articles?). A stronger one, split into three branches with checks and balances, won't slide into ${'tyranny'}.</p>`,
+    choices:[
+      {label:"That argument makes sense to me", next:"n18", effect:{unity:1}, journal:"You read the ${'Federalist'} Papers' case for ratification: a stronger national government, carefully checked, was safer than a weak one that couldn't function."},
+      {label:"It makes sense, but I still want more guarantees", next:"n18", effect:{liberty:1}, journal:"Even convinced by the Federalist argument, you wanted firmer guarantees of individual rights."}
+    ]
+  },
+ 
+  n17: { act:4, text:`<p>You spend an evening with a pamphlet arguing the other way: this document creates a powerful national government with no ${'bill of rights'} — no guarantee protecting speech, religion, or a fair trial. "They took rights away from us once," an old woman tells you. "Why would we hand over a blank check now?"</p>`,
+    choices:[
+      {label:"She has a point — where are the guaranteed rights?", next:"n18", effect:{liberty:1}, journal:"You read the ${'Anti-Federalist'} case against ratification: without a written bill of rights, individual freedoms had no guaranteed protection."},
+      {label:"I still think the country needs this Constitution, rights or not", next:"n18", effect:{unity:1}, journal:"Even sympathizing with Anti-Federalist worries, you leaned toward supporting ratification."}
+    ]
+  },
+ 
+  n18: { act:4, text:`<p>In the end, the two sides strike one more compromise: ratify the Constitution now, and add a ${'bill of rights'} right after. Ten ${'amendment'}s are promised — freedom of speech and religion, the right to a fair trial, protection from unreasonable searches, and more.</p>`,
+    choices:[
+      {label:"That settles it for me — I can support this", next:"n19", journal:"The promise of a Bill of Rights — ten amendments guaranteeing individual freedoms — helped secure enough support to ratify the Constitution."},
+      {label:"It's not everything I wanted, but it's real progress", next:"n19", journal:"The Bill of Rights was itself a compromise — not everything either side wanted, but enough to move the country forward."}
+    ]
+  },
+ 
+  n19: { act:4, text:`<p>If you could make sure everyone remembered just one of those new rights, which would it be?</p>`,
+    choices:[
+      {label:"Freedom of speech and religion", next:"ENDING", tag:"speech"},
+      {label:"The right to a fair trial", next:"ENDING", tag:"trial"}
+    ]
+  }
+};
+ 
+/* ============================================================
+   ENDINGS
+   ============================================================ */
+function getEnding(state){
+  const diff = state.unity - state.liberty;
+  let key;
+  if(diff >= 2) key = "unity";
+  else if(diff <= -2) key = "liberty";
+  else key = "balanced";
+ 
+  const rightsLine = state.rightsTag === "speech"
+    ? "You made sure the delegate's notes remembered freedom of speech and religion above all — the right to think, say, and worship without the government's permission."
+    : "You made sure the delegate's notes remembered the right to a fair trial above all — the idea that no government can lock someone away without proof and a real hearing.";
+ 
+  const endings = {
+    unity: {
+      title: "United We Stand",
+      text: `<p>You close the notebook on a document built, again and again, around one idea: a country too divided to act is a country that can't survive. From the failure of the Articles of Confederation to the Great Compromise to the final vote on ratification, you kept choosing unity over division, and strength over caution.</p>
+             <p>${rightsLine}</p>
+             <p>Mr. Randolph shakes your hand as the delegates file out into the September sun. "A more perfect union," he says. "Let's see if it holds."</p>`
+    },
+    liberty: {
+      title: "Liberty's Watchdog",
+      text: `<p>You close the notebook having pushed back, again and again, on anything that looked like too much power in too few hands. You worried about big states outvoting small ones, about a President's veto going unchecked, about a Constitution with no guaranteed rights at all — until the Bill of Rights finally answered that worry.</p>
+             <p>${rightsLine}</p>
+             <p>The old pamphleteer from the ratification debate finds you outside the hall. "Keep watching them," she says. "A right on paper only means something if people like you keep asking hard questions."</p>`
+    },
+    balanced: {
+      title: "A More Perfect Union",
+      text: `<p>You close the notebook without ever fully picking a side — and maybe that's fitting, because the Constitution itself never fully did either. It splits power between big states and small ones, between the national government and the states, between a strong executive and a Congress that can override him. Compromise isn't a flaw in this document. It <em>is</em> the document.</p>
+             <p>${rightsLine}</p>
+             <p>Mr. Randolph looks at your notes and smiles. "You've written down an argument that's still going on," he says. "It's not finished. It never quite is."</p>`
+    }
+  };
+  return endings[key];
+}
+ 
+/* ============================================================
+   ENGINE
+   ============================================================ */
+const state = { current:"START", unity:0, liberty:0, justiceFlag:false, rightsTag:null, journal:[] };
+ 
+const ACT_NAMES = { 1:"A Broken Nation", 2:"The Great Debate", 3:"Building the Machine", 4:"The Big Argument" };
+ 
+function fillTemplate(str){
+  // resolves ${'...'} glossary markers left inside journal strings, and wraps terms in story text separately
+  return str.replace(/\$\{'([^']+)'\}/g, (m,t)=>t);
+}
+ 
+function renderProgress(act){
+  const shell = document.getElementById('progressShell');
+  const label = document.getElementById('progressLabel');
+  shell.style.display = 'flex';
+  label.style.display = 'block';
+  shell.innerHTML = '';
+  for(let i=1;i<=5;i++){
+    const seg = document.createElement('div');
+    seg.className = 'progress-seg' + (i<=act ? ' filled':'');
+    shell.appendChild(seg);
+  }
+  label.textContent = act<=4 ? `Act ${act} of 5 — ${ACT_NAMES[act]}` : `Act 5 of 5 — Ending`;
+}
+ 
+function attachGlossaryHandlers(container){
+  container.querySelectorAll('.term').forEach(t=>{
+    t.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      const popup = t.querySelector('.term-popup');
+      const wasOpen = popup.classList.contains('open');
+      document.querySelectorAll('.term-popup.open').forEach(p=>p.classList.remove('open'));
+      document.querySelectorAll('.term.active').forEach(el=>el.classList.remove('active'));
+      if(!wasOpen){
+        popup.classList.add('open');
+        t.classList.add('active');
+      }
+    });
+  });
+  document.addEventListener('click', ()=>{
+    document.querySelectorAll('.term-popup.open').forEach(p=>p.classList.remove('open'));
+    document.querySelectorAll('.term.active').forEach(el=>el.classList.remove('active'));
+  }, { once:true });
+}
+ 
+function renderIntro(){
+  document.getElementById('progressShell').style.display = 'none';
+  document.getElementById('progressLabel').style.display = 'none';
+  document.getElementById('hintText').textContent = '';
+  const app = document.getElementById('app');
+  app.innerHTML = `
+    <div class="hero">
+      <svg class="seal" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="32" cy="32" r="30" fill="#9c2b1f"/>
+        <circle cx="32" cy="32" r="30" stroke="#7a2118" stroke-width="2"/>
+        <path d="M32 14 L36 26 L49 26 L38 34 L42 47 L32 39 L22 47 L26 34 L15 26 L28 26 Z" fill="#ece1c4"/>
+      </svg>
+      <h1 class="title">You Are There: Philadelphia, 1787</h1>
+      <p class="subtitle">A choose-your-path journey through the Constitutional Convention. Your choices shape what you learn — and how the story ends.</p>
+      <p class="meta-note">About 10–12 minutes to play</p>
+    </div>
+    <div class="card intro-card">
+      <div class="story-text">
+        <p>A jammed library door. A shove. And suddenly you're not in your school library at all — you're in Philadelphia, in the middle of the summer that the United States Constitution was written.</p>
+        <p>Nobody there knows you're not supposed to be a delegate's aide. That's your way in.</p>
+        <p>Along the way, click any <span class="term" data-term="delegate">underlined word<span class="term-popup"><span class="glabel">tip</span>Click any underlined word like this one for a quick definition.</span></span> if you want a definition. Your choices are tracked in a Delegate's Journal you'll see at the end.</p>
+      </div>
+      <button class="primary" id="beginBtn">Begin the journey</button>
+    </div>
+  `;
+  attachGlossaryHandlers(app);
+  document.getElementById('beginBtn').addEventListener('click', ()=>{
+    state.current = "n1";
+    renderNode();
+  });
+}
+ 
+function renderNode(){
+  const node = NODES[state.current];
+  renderProgress(node.act);
+  document.getElementById('hintText').textContent = 'Tap underlined words for definitions.';
+ 
+  const app = document.getElementById('app');
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.innerHTML = `
+    <div class="act-tag">Act ${node.act} — ${ACT_NAMES[node.act]}</div>
+    <div class="story-text">${withTerms(node.text)}</div>
+    <div class="choices"></div>
+  `;
+  app.innerHTML = '';
+  app.appendChild(card);
+ 
+  const choicesEl = card.querySelector('.choices');
+  node.choices.forEach(choice=>{
+    const btn = document.createElement('button');
+    btn.className = 'choice';
+    btn.textContent = choice.label;
+    btn.addEventListener('click', ()=>{
+      if(choice.effect){
+        if(choice.effect.unity) state.unity += choice.effect.unity;
+        if(choice.effect.liberty) state.liberty += choice.effect.liberty;
+      }
+      if(choice.tag) state.rightsTag = choice.tag;
+      if(choice.journal) state.journal.push(fillTemplate(choice.journal));
+      else if(node.journalEntry) state.journal.push(node.journalEntry);
+ 
+      if(choice.next === "ENDING"){
+        renderEnding();
+      } else {
+        state.current = choice.next;
+        renderNode();
+        window.scrollTo({top:0, behavior:'smooth'});
+      }
+    });
+    choicesEl.appendChild(btn);
+  });
+ 
+  attachGlossaryHandlers(card);
+}
+ 
+function renderEnding(){
+  renderProgress(5);
+  document.getElementById('hintText').textContent = '';
+  const ending = getEnding(state);
+  const app = document.getElementById('app');
+  app.innerHTML = `
+    <div class="card">
+      <div class="act-tag">Your ending</div>
+      <h2 class="ending-title">${ending.title}</h2>
+      <div class="story-text">${ending.text}</div>
+      <div class="journal">
+        <h3>Delegate's Journal — what you learned along the way</h3>
+        <ul>${state.journal.map(j=>`<li>${j}</li>`).join('')}</ul>
+      </div>
+      <button class="primary" id="restartBtn">Play again, choose differently</button>
+    </div>
+  `;
+  document.getElementById('restartBtn').addEventListener('click', ()=>{
+    state.current = "START";
+    state.unity = 0; state.liberty = 0; state.justiceFlag = false; state.rightsTag = null; state.journal = [];
+    renderIntro();
+    window.scrollTo({top:0, behavior:'smooth'});
+  });
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+ 
+renderIntro();
+</script>
+</body>
+</html>
+ 
